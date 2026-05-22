@@ -214,17 +214,6 @@ const todayD = new Date(); todayD.setHours(0,0,0,0);
 let selectedDay = null, selectedHour = null;
 
 const bookedSlots = new Map();
-const SEED_NAMES = ['田中','山田','鈴木','佐藤','伊藤','渡辺','高橋','中村','小林','加藤'];
-(function seedBookings() {
-  const ws = weekStart();
-  let ni = 0;
-  for (let d = 0; d < 7; d++) {
-    const day = new Date(ws); day.setDate(day.getDate() + d);
-    const n = Math.floor(Math.random() * 4);
-    const hrs = [...HOURS].sort(() => Math.random() - .5);
-    for (let i = 0; i < n; i++) bookedSlots.set(slotKey(day, hrs[i]), SEED_NAMES[ni++ % SEED_NAMES.length]);
-  }
-})();
 
 function weekStart() {
   const d = new Date(todayD);
