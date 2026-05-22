@@ -103,8 +103,6 @@
   .receipt-row:last-child { border-bottom: none; }
   .receipt-row .rk { color: var(--text-sub); }
   .receipt-row .rv { font-weight: 500; }
-  .ref-num { text-align: center; margin-top: 12px; font-size: 11px; color: var(--gray-muted); }
-  .ref-num span { font-weight: 600; color: var(--text); letter-spacing: .08em; }
   .new-btn { display: block; width: 100%; margin-top: 14px; padding: 11px; background: white; border: 1px solid var(--gray-border); border-radius: var(--radius); font-size: 14px; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; color: var(--text-sub); }
   .new-btn:hover { background: var(--gray-bg); }
 
@@ -197,7 +195,6 @@
       </div>
       <div class="card-body" style="border-top:1px solid var(--gray-border);">
         <div class="receipt-card" id="receipt-card"></div>
-        <div class="ref-num">予約番号：<span id="ref-num"></span></div>
         <button class="new-btn" onclick="reset()">別の日時で予約する</button>
       </div>
     </div>
@@ -329,7 +326,6 @@ function submitForm() {
     [['日時', label], ['名前', name]].map(([k,v]) =>
       `<div class="receipt-row"><span class="rk">${k}</span><span class="rv">${v}</span></div>`
     ).join('');
-  document.getElementById('ref-num').textContent = 'RB-' + Date.now().toString(36).toUpperCase().slice(-6);
 
   bookedSlots.set(slotKey(date, selectedHour), name);
   setStep(3);
