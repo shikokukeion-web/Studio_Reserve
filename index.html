@@ -142,8 +142,8 @@
   <div id="step1">
     <div class="card fade-in">
       <div class="card-header">
-        <h2>ご希望の日時をお選びください</h2>
-        <p>今週の空き枠から1つお選びください。「✕」は予約済みです。</p>
+        <h2>希望の日時を選択してください</h2>
+        <p>今週の空き枠から1つ選択してください。「✕」は予約済みです。</p>
       </div>
       <div class="card-body">
         <span class="week-lbl" id="week-lbl"></span>
@@ -166,8 +166,8 @@
   <div id="step2" class="form-section">
     <div class="card fade-in">
       <div class="card-header">
-        <h2>お名前を入力してください</h2>
-        <p>予約者のお名前のみご入力ください。</p>
+        <h2>名前を入力してください</h2>
+        <p>予約者の名前のみ入力してください。</p>
       </div>
       <div class="card-body">
         <div class="slot-pill" id="slot-pill">
@@ -175,9 +175,9 @@
           <span id="slot-pill-text"></span>
         </div>
         <div class="form-group">
-          <label>お名前<span class="req">*</span></label>
+          <label>名前<span class="req">*</span></label>
           <input type="text" id="f-name" placeholder="山田 花子" autocomplete="name">
-          <div class="field-error" id="e-name">お名前を入力してください</div>
+          <div class="field-error" id="e-name">名前を入力してください</div>
         </div>
         <div class="form-actions">
           <button class="btn-back" onclick="goStep1()">← 戻る</button>
@@ -324,9 +324,9 @@ function submitForm() {
   const date = new Date(y, m, d);
   const label = `${m+1}月${d}日（${DAYS[date.getDay()]}） ${selectedHour}:00 〜 ${selectedHour+1}:00`;
 
-  document.getElementById('complete-msg').textContent = `${name} 様のご予約を受け付けました。\nご来店をお待ちしております。`;
+  document.getElementById('complete-msg').textContent = `${name} の予約を受け付けました。`;
   document.getElementById('receipt-card').innerHTML =
-    [['日時', label], ['お名前', name]].map(([k,v]) =>
+    [['日時', label], ['名前', name]].map(([k,v]) =>
       `<div class="receipt-row"><span class="rk">${k}</span><span class="rv">${v}</span></div>`
     ).join('');
   document.getElementById('ref-num').textContent = 'RB-' + Date.now().toString(36).toUpperCase().slice(-6);
