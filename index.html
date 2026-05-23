@@ -259,7 +259,6 @@ async function saveReservation(slotKey, name, label) {
 function weekStart() {
   const d = new Date(todayD);
   const day = d.getDay();
-  // 月曜始まり: 日曜(0)は-6、月曜(1)は0、...土曜(6)は-5
   d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
   return d;
 }
@@ -367,7 +366,7 @@ async function submitForm() {
   const date = new Date(y, m, d);
   const label = `${m+1}月${d}日（${DAYS[date.getDay()]}） ${selectedHour}:00 〜 ${selectedHour+1}:00`;
 
-  document.getElementById('complete-msg').textContent = `${name} 様のご予約を受け付けました。\nご来店をお待ちしております。`;
+  document.getElementById('complete-msg').textContent = `${name} の予約が完了しました`;
   document.getElementById('receipt-card').innerHTML =
     [['日時', label], ['お名前', name]].map(([k,v]) =>
       `<div class="receipt-row"><span class="rk">${k}</span><span class="rv">${v}</span></div>`
