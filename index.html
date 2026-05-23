@@ -368,7 +368,7 @@ async function submitForm() {
 
   document.getElementById('complete-msg').textContent = `${name} の予約が完了しました`;
   document.getElementById('receipt-card').innerHTML =
-    [['日時', label], ['お名前', name]].map(([k,v]) =>
+    [['日時', label], ['名前', name]].map(([k,v]) =>
       `<div class="receipt-row"><span class="rk">${k}</span><span class="rv">${v}</span></div>`
     ).join('');
 
