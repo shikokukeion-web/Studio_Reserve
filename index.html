@@ -141,7 +141,7 @@
     <div class="card fade-in">
       <div class="card-header">
         <h2>希望の日時を選択してください</h2>
-        <p>今週の空き枠から1つお選びください。「✕」は予約済みです</p>
+        <p>今週の空き枠から選択してください「✕」は予約済みです</p>
       </div>
       <div class="card-body">
         <span class="week-lbl" id="week-lbl"></span>
@@ -238,8 +238,22 @@ function startRealtimeSync() {
     const colRef = collection(db, 'reservations');
     onSnapshot(colRef, (snapshot) => {
       bookedSlots.clear();
+      // 今週の月曜〜日曜の範囲を計算
+      const ws = weekStart();
+      const we = new Date(ws); we.setDate(we.getDate() + 7);
       snapshot.forEach(docSnap => {
-        bookedSlots.set(docSnap.id, docSnap.data().name);
+        // slotKey形式: "YYYY-M-D-H" → 日付部分を復元して今週か判定
+        const parts = docSnap.id.split('-');
+        if (parts.length >= 4) {
+          const slotDate = new Date(
+            parseInt(parts[0]),
+            parseInt(parts[1]),
+            parseInt(parts[2])
+          );
+          if (slotDate >= ws && slotDate < we) {
+            bookedSlots.set(docSnap.id, docSnap.data().name);
+          }
+        }
       });
       renderCalendar();
     }, (e) => {
@@ -377,7 +391,7 @@ async function submitForm() {
     try {
       await saveReservation(sk, name, label);
     } catch {
-      alert('予約の保存に失敗しました。もう一度お試しください。');
+      alert('予約の保存に失敗しましたもう一度お試しください');
       return;
     }
   } else {
