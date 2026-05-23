@@ -208,7 +208,8 @@ import { getFirestore, doc, setDoc, onSnapshot, collection }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 window.addEventListener('load', () => {
-const DAYS  = ['日','月','火','水','木','金','土'];
+const HOURS = [9,10,11,12,13,14,15,16,17,18,19,20];
+const DAYS  = ['月','火','水','木','金','土','日'];
 const MONTHS= ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 
 const todayD = new Date(); todayD.setHours(0,0,0,0);
@@ -216,13 +217,13 @@ let selectedDay = null, selectedHour = null;
 
 // ─── Firestore 設定 ──────────────────────────────────────────
 // Firebase Console からコピーした firebaseConfig を貼り付けてください
-  const firebaseConfig = {
-    apiKey: "AIzaSyA9E2qJhLEdQisIZ3qSssM1n2eYrpOP8R8",
-    authDomain: "reservationsystem-8bce2.firebaseapp.com",
-    projectId: "reservationsystem-8bce2",
-    storageBucket: "reservationsystem-8bce2.firebasestorage.app",
-    messagingSenderId: "630474266504",
-    appId: "1:630474266504:web:4108667977996c1a5ecc3d",
+const firebaseConfig = {
+  apiKey: "AIzaSyA9E2qJhLEdQisIZ3qSssM1n2eYrpOP8R8",
+  authDomain: "reservationsystem-8bce2.firebaseapp.com",
+  projectId: "reservationsystem-8bce2",
+  storageBucket: "reservationsystem-8bce2.firebasestorage.app",
+  messagingSenderId: "630474266504",
+  appId: "1:630474266504:web:4108667977996c1a5ecc3d",
 };
 // ────────────────────────────────────────────────────────────
 
@@ -257,7 +258,9 @@ async function saveReservation(slotKey, name, label) {
 
 function weekStart() {
   const d = new Date(todayD);
-  d.setDate(d.getDate() - d.getDay());
+  const day = d.getDay();
+  // 月曜始まり: 日曜(0)は-6、月曜(1)は0、...土曜(6)は-5
+  d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
   return d;
 }
 function slotKey(date, hour) {
@@ -283,7 +286,7 @@ function renderCalendar() {
   for (let d = 0; d < 7; d++) {
     const date = new Date(ws); date.setDate(date.getDate() + d);
     const isToday = date.getTime() === todayD.getTime();
-    const cls = d === 0 ? 'sun' : d === 6 ? 'sat' : '';
+    const cls = d === 6 ? 'sun' : d === 5 ? 'sat' : '';
     head.innerHTML += `<th class="${cls}">
       <div class="day-name">${DAYS[d]}</div>
       <div class="day-num-th${isToday ? ' today' : ''}">${date.getDate()}</div>
