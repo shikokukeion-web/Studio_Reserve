@@ -63,6 +63,7 @@
   .cal-table th .day-num-th { font-size: 14px; font-weight: 600; display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 50%; margin-top: 2px; }
   .cal-table th .day-num-th.today { background: var(--green); color: white !important; }
   .time-cell { font-size: 10px; color: var(--gray-muted); text-align: right; padding: 0 8px 0 0; vertical-align: top; padding-top: 7px; white-space: nowrap; }
+  .time-cell.right { text-align: left; padding: 0 0 0 8px; }
   .slot { height: 44px; border: 1px solid var(--gray-border); border-radius: 6px; margin: 2px; cursor: pointer; position: relative; background: white; transition: background .12s, border-color .12s; }
   .slot:hover:not(.booked):not(.past) { background: var(--green-light); border-color: var(--green-mid); }
   .slot.selected { background: var(--green-light); border: 2px solid var(--green); }
@@ -363,7 +364,8 @@ function renderCalendar() {
       <div class="day-num-th${isToday ? ' today' : ''}">${date.getDate()}</div>
     </th>`;
   }
-
+  head.innerHTML += '<th class="time-th"></th>';
+ 
   // ボディ
   const body = document.getElementById('cal-body');
   body.innerHTML = '';
@@ -392,6 +394,10 @@ function renderCalendar() {
       }
       td.appendChild(div); tr.appendChild(td);
     }
+    const tdRight = document.createElement('td');
+    tdRight.className = 'time-cell right';
+    tdRight.textContent = `${hour}:00`;
+    tr.appendChild(tdRight);
     body.appendChild(tr);
   });
 }
