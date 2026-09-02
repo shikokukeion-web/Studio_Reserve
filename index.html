@@ -130,6 +130,35 @@
 
   .fade-in { animation: fi .22s ease; }
   @keyframes fi { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+
+  /* Admin */
+  .logo-mark { user-select: none; -webkit-tap-highlight-color: transparent; }
+  .admin-badge { display: none; align-items: center; gap: 6px; background: #C0392B; color: white; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-left: 10px; }
+  .admin-badge.show { display: inline-flex; }
+  .admin-exit { background: rgba(255,255,255,0.25); border: none; color: white; font-size: 10px; border-radius: 999px; padding: 2px 7px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; }
+  .admin-exit:hover { background: rgba(255,255,255,0.4); }
+
+  .slot.admin-selected { border: 2px solid #C0392B; background: #FBEAE7; }
+  .slot.admin-selected::before { content: '✓'; position: absolute; top: 2px; right: 4px; font-size: 10px; font-weight: 700; color: #C0392B; z-index: 1; }
+
+  .admin-toolbar { position: sticky; bottom: 0; z-index: 40; background: white; border: 1px solid #E8B4AC; border-radius: var(--radius-lg); padding: 14px 16px; margin-top: 16px; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); }
+  .admin-toolbar h3 { font-size: 13px; font-weight: 600; color: #922B21; margin-bottom: 3px; }
+  .admin-toolbar .admin-sub { font-size: 11px; color: var(--text-sub); margin-bottom: 12px; line-height: 1.6; }
+  .admin-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .admin-row input[type="text"] { flex: 1; min-width: 140px; padding: 9px 12px; border: 1px solid var(--gray-border); border-radius: var(--radius); font-size: 14px; font-family: 'Noto Sans JP', sans-serif; outline: none; }
+  .admin-row input[type="text"]:focus { border-color: #C0392B; box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
+  .admin-btn { padding: 9px 14px; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; white-space: nowrap; }
+  .admin-btn:disabled { opacity: 0.4; cursor: default; }
+  .admin-btn.register { background: var(--green); color: white; }
+  .admin-btn.register:hover:not(:disabled) { background: var(--green-dark); }
+  .admin-btn.delete { background: #C0392B; color: white; }
+  .admin-btn.delete:hover:not(:disabled) { background: #922B21; }
+  .admin-btn.clear { background: white; border: 1px solid var(--gray-border); color: var(--text-sub); }
+  .admin-btn.clear:hover { background: var(--gray-bg); }
+  .admin-count { font-size: 11px; color: var(--text-sub); margin-top: 8px; }
+  .admin-msg { font-size: 12px; margin-top: 8px; min-height: 16px; }
+  .admin-msg.ok { color: var(--green-dark); }
+  .admin-msg.err { color: #C0392B; }
   @media (max-width: 520px) {
     .card-body { padding: 16px 14px; }
     .card-header { padding: 14px 16px 12px; }
@@ -140,11 +169,12 @@
 <body>
 
 <header class="header">
-  <div class="logo-mark">
+  <div class="logo-mark" id="logo-mark" onclick="handleLogoTap()">
     <svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
   </div>
   <span class="logo-text">スタジオ予約</span>
   <span class="logo-sub">オンライン予約フォーム</span>
+  <span class="admin-badge" id="admin-badge">管理モード <button class="admin-exit" onclick="exitAdminMode()">終了</button></span>
 </header>
 
 <div class="page-wrap">
@@ -188,6 +218,27 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
           <span id="notice-text"></span>
           <button class="proceed-btn" onclick="goStep2()">次へ →</button>
+        </div>
+
+        <!-- 管理者ツールバー -->
+        <div class="admin-toolbar" id="admin-toolbar" style="display:none;">
+          <h3>一括操作（管理モード）</h3>
+          <p class="admin-sub">カレンダーの枠をクリックして複数選択できます。空き枠は「一括登録」、予約済み枠は「一括削除」で処理されます。</p>
+          <div class="admin-row">
+            <input type="text" id="admin-bulk-name" placeholder="登録する名前 / バンド名">
+            <button class="admin-btn register" onclick="bulkRegister()">選択した空き枠に一括登録</button>
+          </div>
+          <div class="admin-row" style="margin-top:8px;">
+            <button class="admin-btn delete" onclick="bulkDeleteSelected()">選択した予約済み枠を一括削除</button>
+            <button class="admin-btn clear" onclick="clearAdminSelection()">選択をクリア</button>
+          </div>
+          <div class="admin-count" id="admin-count">0件選択中</div>
+          <div class="admin-msg" id="admin-msg"></div>
+          <div class="admin-row" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--gray-border);">
+            <input type="password" id="admin-new-pass" placeholder="新しい管理者パスワード" style="flex:1; min-width:120px; padding:9px 12px; border:1px solid var(--gray-border); border-radius:var(--radius); font-size:14px; font-family:'Noto Sans JP',sans-serif;">
+            <input type="password" id="admin-new-pass2" placeholder="確認用に再入力" style="flex:1; min-width:120px; padding:9px 12px; border:1px solid var(--gray-border); border-radius:var(--radius); font-size:14px; font-family:'Noto Sans JP',sans-serif;">
+            <button class="admin-btn clear" onclick="changeAdminPassword()">パスワードを変更</button>
+          </div>
         </div>
       </div>
     </div>
@@ -255,9 +306,23 @@
   </div>
 </div>
 
+<!-- 管理者パスワードモーダル -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal">
+    <h3>管理者ログイン</h3>
+    <p class="modal-sub">管理者パスワードを入力してください。</p>
+    <input type="password" id="admin-pass-input" placeholder="管理者パスワード" onkeydown="if(event.key==='Enter') confirmAdminLogin()">
+    <div class="modal-error" id="admin-modal-error"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeAdminModal()">閉じる</button>
+      <button class="modal-delete" onclick="confirmAdminLogin()">ログイン</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection }
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, writeBatch }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 window.addEventListener('load', () => {
@@ -273,6 +338,22 @@ let selectedDay  = null;
 let selectedHour = null;
 let deleteSlotKey = null;
 
+// ─── 管理者設定 ─────────────────────────────────────────────
+// ロゴを4秒以内に5回タップすると管理者ログイン画面が開きます。
+// パスワードはコードに書かず、Firestoreの config/admin ドキュメントに
+// SHA-256ハッシュとして保存し、そこと照合します（初回はまだ何も
+// 設定されていないので、最初に入力した文字列がそのまま初期パスワードとして
+// 保存されます。デプロイ後、最初に必ずご自身でログインして設定してください）。
+let tapTimestamps = [];
+let adminMode = false;
+const adminSelected = new Set(); // 選択中のスロットキー
+
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+// ────────────────────────────────────────────────────────────
+
 // ─── Firestore 設定 ─────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyA9E2qJhLEdQisIZ3qSssM1n2eYrpOP8R8",
@@ -287,6 +368,7 @@ const firebaseConfig = {
 const isConfigured = firebaseConfig.projectId !== 'YOUR_PROJECT_ID';
 const app = isConfigured ? initializeApp(firebaseConfig) : null;
 const db  = isConfigured ? getFirestore(app) : null;
+const adminConfigRef = isConfigured ? doc(db, 'config', 'admin') : null;
 
 const bookedSlots = new Map(); // key -> { name, pass }
 
@@ -298,6 +380,7 @@ function startRealtimeSync() {
       bookedSlots.clear();
       const ws0 = weekStart(0);
       const weN = new Date(ws0); weN.setDate(weN.getDate() + MAX_WEEKS * 7);
+      const staleKeys = [];
       snapshot.forEach(docSnap => {
         const parts = docSnap.id.split('-');
         if (parts.length >= 4) {
@@ -305,11 +388,38 @@ function startRealtimeSync() {
           if (slotDate >= ws0 && slotDate < weN) {
             bookedSlots.set(docSnap.id, { name: docSnap.data().name, pass: docSnap.data().pass || '' });
           }
+          // 表示中の週に関わらず、日付が「今日」より前の予約はすべて削除対象にする
+          if (slotDate < todayD) staleKeys.push(docSnap.id);
         }
       });
       renderCalendar();
+      if (staleKeys.length > 0) cleanupPastReservations(staleKeys);
     }, (e) => console.error('同期エラー:', e));
   } catch (e) { console.error('Firestore初期化エラー:', e); }
+}
+
+// ── 過去の予約を自動削除 ─────────────────────────────────────
+// Cloud Functionsを使わない構成のため、定期実行のcronは組めない。
+// 代わりに「誰かがページを開いてFirestoreの最新状態を受け取るたび」に
+// 日付が今日より前の予約をクライアント側からまとめて削除する。
+// （＝アクセスが全く無い日が続くと削除も走らないが、通常運用では
+//   予約カレンダーを見にくる人がいるたびにクリーンアップされる）
+let cleanupInFlight = false;
+async function cleanupPastReservations(staleKeys) {
+  if (cleanupInFlight) return;
+  cleanupInFlight = true;
+  try {
+    const CHUNK = 400; // writeBatchの上限(500)に余裕を持たせる
+    for (let i = 0; i < staleKeys.length; i += CHUNK) {
+      const batch = writeBatch(db);
+      staleKeys.slice(i, i + CHUNK).forEach(sk => batch.delete(doc(db, 'reservations', sk)));
+      await batch.commit();
+    }
+  } catch (e) {
+    console.error('過去予約の自動削除に失敗:', e);
+  } finally {
+    cleanupInFlight = false;
+  }
 }
 
 async function saveReservation(sk, name, pass, label) {
@@ -380,14 +490,21 @@ function renderCalendar() {
       const bookedData = bookedSlots.get(sk);
       const booked    = bookedData !== undefined;
       const chosen    = selectedDay === dk && selectedHour === hour;
+      const adminSel  = adminMode && adminSelected.has(sk);
       const td = document.createElement('td');
       const div = document.createElement('div');
-      div.className = 'slot' + (past ? ' past' : booked ? ' booked' : chosen ? ' selected' : '');
+      div.className = 'slot' + (past ? ' past' : booked ? ' booked' : chosen ? ' selected' : '') + (adminSel ? ' admin-selected' : '');
       if (booked) {
         const lbl = document.createElement('div');
         lbl.className = 'slot-name';
         lbl.textContent = bookedData.name;
         div.appendChild(lbl);
+      }
+      if (adminMode) {
+        // 管理モードでは予約済み・空き・過去に関わらず選択トグル
+        div.style.cursor = 'pointer';
+        div.onclick = () => { toggleAdminSelect(sk); };
+      } else if (booked) {
         div.onclick = () => openDeleteModal(sk, date, hour);
       } else if (!past) {
         div.onclick = () => { selectedDay = dk; selectedHour = hour; updateNotice(date, hour); renderCalendar(); };
@@ -445,6 +562,184 @@ async function confirmDelete() {
     closeDeleteModal();
   } catch (e) {
     document.getElementById('modal-error').textContent = '削除に失敗しました。もう一度お試しください。';
+  }
+}
+
+// ── 管理者モード ─────────────────────────────────────────────
+function handleLogoTap() {
+  const now = Date.now();
+  tapTimestamps.push(now);
+  tapTimestamps = tapTimestamps.filter(t => now - t <= 4000);
+  if (tapTimestamps.length >= 5) {
+    tapTimestamps = [];
+    openAdminModal();
+  }
+}
+function openAdminModal() {
+  document.getElementById('admin-pass-input').value = '';
+  document.getElementById('admin-modal-error').textContent = '';
+  document.getElementById('admin-modal').classList.add('open');
+  setTimeout(() => document.getElementById('admin-pass-input').focus(), 50);
+}
+function closeAdminModal() {
+  document.getElementById('admin-modal').classList.remove('open');
+}
+async function confirmAdminLogin() {
+  const val = document.getElementById('admin-pass-input').value;
+  if (!val) {
+    document.getElementById('admin-modal-error').textContent = 'パスワードを入力してください';
+    return;
+  }
+  if (!isConfigured) {
+    // Firebase未設定時のフォールバック（ローカル動作確認用。本番では使われません）
+    const localPass = localStorage.getItem('adminPassLocal');
+    if (localPass === null) {
+      localStorage.setItem('adminPassLocal', await sha256Hex(val));
+      closeAdminModal();
+      enterAdminMode();
+      setAdminMsg('初回設定としてこのパスワードを保存しました', 'ok');
+      return;
+    }
+    if (await sha256Hex(val) !== localPass) {
+      document.getElementById('admin-modal-error').textContent = 'パスワードが正しくありません';
+      return;
+    }
+    closeAdminModal();
+    enterAdminMode();
+    return;
+  }
+  document.getElementById('admin-modal-error').textContent = '確認中…';
+  try {
+    const snap = await getDoc(adminConfigRef);
+    const inputHash = await sha256Hex(val);
+    if (!snap.exists() || !snap.data().passHash) {
+      // 初回：入力したパスワードをそのまま初期パスワードとして保存
+      await setDoc(adminConfigRef, { passHash: inputHash });
+      document.getElementById('admin-modal-error').textContent = '';
+      closeAdminModal();
+      enterAdminMode();
+      setAdminMsg('初回設定としてこのパスワードを保存しました', 'ok');
+      return;
+    }
+    if (inputHash !== snap.data().passHash) {
+      document.getElementById('admin-modal-error').textContent = 'パスワードが正しくありません';
+      return;
+    }
+    document.getElementById('admin-modal-error').textContent = '';
+    closeAdminModal();
+    enterAdminMode();
+  } catch (e) {
+    document.getElementById('admin-modal-error').textContent = '確認に失敗しました。もう一度お試しください。';
+  }
+}
+async function changeAdminPassword() {
+  const p1 = document.getElementById('admin-new-pass').value;
+  const p2 = document.getElementById('admin-new-pass2').value;
+  if (p1.length < 4) { setAdminMsg('新しいパスワードは4文字以上にしてください', 'err'); return; }
+  if (p1 !== p2) { setAdminMsg('確認用パスワードが一致しません', 'err'); return; }
+  try {
+    const hash = await sha256Hex(p1);
+    if (isConfigured) {
+      await setDoc(adminConfigRef, { passHash: hash });
+    } else {
+      localStorage.setItem('adminPassLocal', hash);
+    }
+    document.getElementById('admin-new-pass').value = '';
+    document.getElementById('admin-new-pass2').value = '';
+    setAdminMsg('管理者パスワードを変更しました', 'ok');
+  } catch (e) {
+    setAdminMsg('パスワードの変更に失敗しました。もう一度お試しください。', 'err');
+  }
+}
+function enterAdminMode() {
+  adminMode = true;
+  adminSelected.clear();
+  document.getElementById('admin-badge').classList.add('show');
+  document.getElementById('admin-toolbar').style.display = '';
+  updateAdminCount();
+  setAdminMsg('', '');
+  renderCalendar();
+}
+function exitAdminMode() {
+  adminMode = false;
+  adminSelected.clear();
+  document.getElementById('admin-badge').classList.remove('show');
+  document.getElementById('admin-toolbar').style.display = 'none';
+  renderCalendar();
+}
+function toggleAdminSelect(sk) {
+  if (adminSelected.has(sk)) adminSelected.delete(sk);
+  else adminSelected.add(sk);
+  updateAdminCount();
+  renderCalendar();
+}
+function clearAdminSelection() {
+  adminSelected.clear();
+  updateAdminCount();
+  setAdminMsg('', '');
+  renderCalendar();
+}
+function updateAdminCount() {
+  document.getElementById('admin-count').textContent = `${adminSelected.size}件選択中`;
+}
+function setAdminMsg(text, type) {
+  const el = document.getElementById('admin-msg');
+  el.textContent = text;
+  el.className = 'admin-msg' + (type ? ' ' + type : '');
+}
+function parseSlotKey(sk) {
+  const [y, m, d, h] = sk.split('-').map(Number);
+  return { date: new Date(y, m, d), hour: h };
+}
+function labelFor(date, hour) {
+  const dowIdx = (date.getDay() + 6) % 7;
+  return `${date.getMonth()+1}月${date.getDate()}日（${DAYS[dowIdx]}） ${hour}:00 〜 ${hour+1}:00`;
+}
+
+async function bulkRegister() {
+  const name = document.getElementById('admin-bulk-name').value.trim();
+  if (!name) { setAdminMsg('登録する名前を入力してください', 'err'); return; }
+  const targets = [...adminSelected].filter(sk => !bookedSlots.get(sk));
+  if (targets.length === 0) { setAdminMsg('選択枠の中に空き枠がありません', 'err'); return; }
+  try {
+    if (isConfigured) {
+      const batch = writeBatch(db);
+      targets.forEach(sk => {
+        const { date, hour } = parseSlotKey(sk);
+        batch.set(doc(db, 'reservations', sk), {
+          name, pass: '', label: labelFor(date, hour), createdAt: new Date().toISOString()
+        });
+      });
+      await batch.commit();
+    } else {
+      targets.forEach(sk => bookedSlots.set(sk, { name, pass: '' }));
+    }
+    targets.forEach(sk => adminSelected.delete(sk));
+    updateAdminCount();
+    setAdminMsg(`${targets.length}件を登録しました`, 'ok');
+    renderCalendar();
+  } catch (e) {
+    setAdminMsg('一括登録に失敗しました。もう一度お試しください。', 'err');
+  }
+}
+
+async function bulkDeleteSelected() {
+  const targets = [...adminSelected].filter(sk => bookedSlots.get(sk));
+  if (targets.length === 0) { setAdminMsg('選択枠の中に予約済み枠がありません', 'err'); return; }
+  try {
+    if (isConfigured) {
+      const batch = writeBatch(db);
+      targets.forEach(sk => batch.delete(doc(db, 'reservations', sk)));
+      await batch.commit();
+    } else {
+      targets.forEach(sk => bookedSlots.delete(sk));
+    }
+    targets.forEach(sk => adminSelected.delete(sk));
+    updateAdminCount();
+    setAdminMsg(`${targets.length}件を削除しました`, 'ok');
+    renderCalendar();
+  } catch (e) {
+    setAdminMsg('一括削除に失敗しました。もう一度お試しください。', 'err');
   }
 }
 
@@ -530,6 +825,14 @@ window.prevWeek      = prevWeek;
 window.nextWeek      = nextWeek;
 window.closeDeleteModal = closeDeleteModal;
 window.confirmDelete    = confirmDelete;
+window.handleLogoTap    = handleLogoTap;
+window.closeAdminModal  = closeAdminModal;
+window.confirmAdminLogin = confirmAdminLogin;
+window.exitAdminMode    = exitAdminMode;
+window.bulkRegister     = bulkRegister;
+window.bulkDeleteSelected = bulkDeleteSelected;
+window.clearAdminSelection = clearAdminSelection;
+window.changeAdminPassword = changeAdminPassword;
 
 }); // end load
 </script>
