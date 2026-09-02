@@ -389,7 +389,7 @@ function startRealtimeSync() {
             bookedSlots.set(docSnap.id, { name: docSnap.data().name, pass: docSnap.data().pass || '' });
           }
           // 表示中の週に関わらず、日付が「今日」より前の予約はすべて削除対象にする
-          if (slotDate < todayD) staleKeys.push(docSnap.id);
+          if (slotDate < ws0) staleKeys.push(docSnap.id);
         }
       });
       renderCalendar();
