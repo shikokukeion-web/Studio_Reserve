@@ -1,326 +1,319 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>スタジオ予約</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#f6f5f1"><title>スタジオ予約</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --green: #1D9E75; --green-light: #E1F5EE; --green-dark: #0F6E56; --green-mid: #9FE1CB;
-    --gray-bg: #f7f6f1; --gray-border: #E2E0D8; --gray-muted: #9E9C96;
-    --text: #1C1C1A; --text-sub: #6B6964; --radius: 10px; --radius-lg: 16px;
-  }
-  body { font-family: 'Noto Sans JP', sans-serif; background: var(--gray-bg); color: var(--text); min-height: 100vh; }
-
-  .header { background: white; border-bottom: 1px solid var(--gray-border); padding: 16px 24px; display: flex; align-items: center; gap: 10px; }
-  .logo-mark { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-  .logo-mark svg { width: 16px; height: 16px; fill: none; stroke: white; stroke-width: 2; }
-  .logo-text { font-size: 15px; font-weight: 600; }
-  .logo-sub { font-size: 11px; color: var(--gray-muted); margin-left: auto; }
-
-  .page-wrap { max-width: 700px; margin: 0 auto; padding: 28px 16px 60px; }
-
-  /* Steps */
-  .steps { display: flex; align-items: center; margin-bottom: 24px; }
-  .step { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--gray-muted); flex: 1; }
-  .step.active { color: var(--green); }
-  .step.done { color: var(--green-dark); }
-  .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--gray-border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; background: white; flex-shrink: 0; }
-  .step.active .step-num { background: var(--green); border-color: var(--green); color: white; }
-  .step.done .step-num { background: var(--green-light); border-color: var(--green-mid); color: var(--green-dark); }
-  .step-line { flex: 1; height: 1px; background: var(--gray-border); margin: 0 6px; }
-  .step-line.done { background: var(--green-mid); }
-
-  /* Card */
-  .card { background: white; border: 1px solid var(--gray-border); border-radius: var(--radius-lg); overflow: hidden; }
-  .card-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--gray-border); }
-  .card-header h2 { font-size: 14px; font-weight: 600; }
-  .card-header p { font-size: 12px; color: var(--text-sub); margin-top: 3px; }
-  .card-body { padding: 20px 22px; }
-
-  /* Calendar toolbar */
-  .cal-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .week-lbl { font-size: 13px; font-weight: 600; color: var(--text-sub); }
-  .week-indicator { display: flex; gap: 5px; }
-  .week-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-border); }
-  .week-dot.active { background: var(--green); }
-  .nav-row { display: flex; gap: 6px; }
-  .nav-btn { width: 30px; height: 30px; border: 1px solid var(--gray-border); border-radius: 8px; background: white; cursor: pointer; font-size: 14px; color: var(--text-sub); display: flex; align-items: center; justify-content: center; }
-  .nav-btn:hover:not(:disabled) { background: var(--gray-bg); color: var(--text); }
-  .nav-btn:disabled { opacity: 0.3; cursor: default; }
-
-  /* Calendar table */
-  .cal-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .cal-table { width: 100%; min-width: 500px; border-collapse: collapse; }
-  .cal-table th { padding: 8px 4px; font-size: 11px; font-weight: 500; color: var(--text-sub); text-align: center; background: var(--gray-bg); border-bottom: 1px solid var(--gray-border); }
-  .cal-table th.time-th { width: 44px; font-size: 10px; }
-  .cal-table th.sun .day-num-th { color: #C0392B; }
-  .cal-table th.sat .day-num-th { color: #2874A6; }
-  .cal-table th .day-name { font-size: 10px; color: var(--gray-muted); }
-  .cal-table th .day-num-th { font-size: 14px; font-weight: 600; display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 50%; margin-top: 2px; }
-  .cal-table th .day-num-th.today { background: var(--green); color: white !important; }
-  .time-cell { font-size: 10px; color: var(--gray-muted); text-align: right; padding: 0 8px 0 0; vertical-align: top; padding-top: 7px; white-space: nowrap; }
-  .time-cell.right { text-align: left; padding: 0 0 0 8px; }
-  .slot { height: 44px; border: 1px solid var(--gray-border); border-radius: 6px; margin: 2px; cursor: pointer; position: relative; background: white; transition: background .12s, border-color .12s; }
-  .slot:hover:not(.booked):not(.past) { background: var(--green-light); border-color: var(--green-mid); }
-  .slot.selected { background: var(--green-light); border: 2px solid var(--green); }
-  .slot.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: var(--green); }
-  .slot.booked { background: #F1EFE8; cursor: pointer; border-color: #D3D1C7; }
-  .slot.booked:hover { background: #EAE7DC; }
-  .slot-name { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: #5F5E5A; padding: 2px 4px; text-align: center; line-height: 1.3; overflow: hidden; }
-  .slot.past { background: var(--gray-bg); cursor: default; opacity: 0.4; }
-
-  /* Notice */
-  .notice { display: none; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 14px; background: var(--green-light); border: 1px solid var(--green-mid); border-radius: var(--radius); font-size: 13px; color: var(--green-dark); }
-  .notice.show { display: flex; }
-  .proceed-btn { margin-left: auto; padding: 6px 14px; background: var(--green); color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; white-space: nowrap; }
-  .proceed-btn:hover { background: var(--green-dark); }
-
-  /* Form */
-  .form-section { display: none; }
-  .form-section.show { display: block; }
-  .slot-pill { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; background: var(--green-light); border: 1px solid var(--green-mid); border-radius: var(--radius); font-size: 13px; font-weight: 500; color: var(--green-dark); margin-bottom: 20px; }
-  .form-group { margin-bottom: 14px; }
-  .form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-sub); margin-bottom: 6px; }
-  .form-group label .req { color: #C0392B; margin-left: 2px; }
-  .form-group input { width: 100%; padding: 11px 13px; border: 1px solid var(--gray-border); border-radius: var(--radius); font-size: 15px; font-family: 'Noto Sans JP', sans-serif; color: var(--text); background: white; outline: none; transition: border-color .15s, box-shadow .15s; }
-  .form-group input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,158,117,0.1); }
-  .form-hint { font-size: 11px; color: var(--gray-muted); margin-top: 4px; }
-  .field-error { font-size: 11px; color: #C0392B; margin-top: 4px; display: none; }
-  .field-error.show { display: block; }
-  .form-actions { display: flex; gap: 10px; margin-top: 20px; }
-  .btn-back { padding: 11px 20px; border: 1px solid var(--gray-border); border-radius: var(--radius); background: white; font-size: 14px; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; color: var(--text-sub); }
-  .btn-back:hover { background: var(--gray-bg); }
-  .btn-submit { flex: 1; padding: 12px; background: var(--green); color: white; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; }
-  .btn-submit:hover { background: var(--green-dark); }
-
-  /* Complete */
-  .complete-section { display: none; }
-  .complete-section.show { display: block; }
-  .complete-hero { text-align: center; padding: 36px 24px 24px; }
-  .check-circle { width: 56px; height: 56px; border-radius: 50%; background: var(--green-light); border: 2px solid var(--green-mid); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 24px; color: var(--green); font-weight: 700; }
-  .complete-hero h2 { font-size: 19px; font-weight: 600; margin-bottom: 8px; }
-  .complete-hero p { font-size: 13px; color: var(--text-sub); line-height: 1.7; }
-  .receipt-card { background: var(--gray-bg); border-radius: var(--radius); padding: 14px 16px; margin-top: 16px; }
-  .receipt-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--gray-border); }
-  .receipt-row:last-child { border-bottom: none; }
-  .receipt-row .rk { color: var(--text-sub); }
-  .receipt-row .rv { font-weight: 500; }
-  .new-btn { display: block; width: 100%; margin-top: 14px; padding: 11px; background: white; border: 1px solid var(--gray-border); border-radius: var(--radius); font-size: 14px; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; color: var(--text-sub); }
-  .new-btn:hover { background: var(--gray-bg); }
-
-  /* Delete modal */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: white; border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 360px; }
-  .modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-  .modal .modal-sub { font-size: 12px; color: var(--text-sub); margin-bottom: 18px; line-height: 1.6; }
-  .modal-slot { font-size: 13px; font-weight: 500; color: var(--green-dark); background: var(--green-light); border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; }
-  .modal input { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-border); border-radius: var(--radius); font-size: 15px; font-family: 'Noto Sans JP', sans-serif; outline: none; margin-bottom: 6px; }
-  .modal input:focus { border-color: #C0392B; box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
-  .modal-error { font-size: 11px; color: #C0392B; min-height: 16px; margin-bottom: 14px; }
-  .modal-actions { display: flex; gap: 8px; }
-  .modal-cancel { flex: 1; padding: 10px; border: 1px solid var(--gray-border); border-radius: var(--radius); background: white; font-size: 14px; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; color: var(--text-sub); }
-  .modal-cancel:hover { background: var(--gray-bg); }
-  .modal-delete { flex: 1; padding: 10px; background: #C0392B; color: white; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; }
-  .modal-delete:hover { background: #922B21; }
-
-  .fade-in { animation: fi .22s ease; }
-  @keyframes fi { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
-
-  /* Admin */
-  .logo-mark { user-select: none; -webkit-tap-highlight-color: transparent; }
-  .admin-badge { display: none; align-items: center; gap: 6px; background: #C0392B; color: white; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-left: 10px; }
-  .admin-badge.show { display: inline-flex; }
-  .admin-exit { background: rgba(255,255,255,0.25); border: none; color: white; font-size: 10px; border-radius: 999px; padding: 2px 7px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; }
-  .admin-exit:hover { background: rgba(255,255,255,0.4); }
-
-  .slot.admin-selected { border: 2px solid #C0392B; background: #FBEAE7; }
-  .slot.admin-selected::before { content: '✓'; position: absolute; top: 2px; right: 4px; font-size: 10px; font-weight: 700; color: #C0392B; z-index: 1; }
-
-  .admin-toolbar { position: sticky; bottom: 0; z-index: 40; background: white; border: 1px solid #E8B4AC; border-radius: var(--radius-lg); padding: 14px 16px; margin-top: 16px; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); }
-  .admin-toolbar h3 { font-size: 13px; font-weight: 600; color: #922B21; margin-bottom: 3px; }
-  .admin-toolbar .admin-sub { font-size: 11px; color: var(--text-sub); margin-bottom: 12px; line-height: 1.6; }
-  .admin-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .admin-row input[type="text"] { flex: 1; min-width: 140px; padding: 9px 12px; border: 1px solid var(--gray-border); border-radius: var(--radius); font-size: 14px; font-family: 'Noto Sans JP', sans-serif; outline: none; }
-  .admin-row input[type="text"]:focus { border-color: #C0392B; box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
-  .admin-btn { padding: 9px 14px; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; white-space: nowrap; }
-  .admin-btn:disabled { opacity: 0.4; cursor: default; }
-  .admin-btn.register { background: var(--green); color: white; }
-  .admin-btn.register:hover:not(:disabled) { background: var(--green-dark); }
-  .admin-btn.delete { background: #C0392B; color: white; }
-  .admin-btn.delete:hover:not(:disabled) { background: #922B21; }
-  .admin-btn.clear { background: white; border: 1px solid var(--gray-border); color: var(--text-sub); }
-  .admin-btn.clear:hover { background: var(--gray-bg); }
-  .admin-count { font-size: 11px; color: var(--text-sub); margin-top: 8px; }
-  .admin-msg { font-size: 12px; margin-top: 8px; min-height: 16px; }
-  .admin-msg.ok { color: var(--green-dark); }
-  .admin-msg.err { color: #C0392B; }
-  @media (max-width: 520px) {
-    .card-body { padding: 16px 14px; }
-    .card-header { padding: 14px 16px 12px; }
-    .logo-sub { display: none; }
-  }
-</style>
-</head>
-<body>
-
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+:root {
+  --green: #252822; --green-dark: #0d100c; --green-light: #efefea; --green-mid: #b6bab0;
+  --gray-bg: #f6f5f1; --gray-border: #deded6; --gray-muted: #7a7d73;
+  --text: #252822; --text-sub: #65695e; --accent: #b44d30; --radius: 3px; --radius-lg: 4px;
+}
+body { color: var(--text); background: var(--gray-bg); font-family: 'Noto Sans JP', 'Yu Gothic', sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; }
+button { color: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+button, input { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+button { transition: background .15s, color .15s, border-color .15s; }
+.header { min-height: 66px; display: flex; align-items: center; gap: 13px; padding: 0 max(28px, calc((100vw - 1200px) / 2)); border-bottom: 1px solid #cdcec5; background: var(--gray-bg); }
+.logo-mark { cursor: default; border: 0; width: 37px; height: 37px; display: flex; align-items: center; justify-content: center; background: var(--text); color: white; border-radius: 0; user-select: none; flex: 0 0 auto; }
+.logo-mark svg { width: 23px; height: 23px; }
+.logo-text { font-size: 16px; font-weight: 700; letter-spacing: .06em; }
+.page-wrap { max-width: 1256px; margin: 0 auto; padding: 24px 28px 36px; }
+.booking-layout { display: grid; grid-template-columns: 218px minmax(0, 1fr); gap: 44px; align-items: start; }
+.booking-sidebar { padding-top: 2px; }
+.steps { display: flex; flex-direction: column; margin-bottom: 36px; }
+.step { display: flex; gap: 14px; align-items: center; min-height: 52px; padding: 0 3px; font-size: 13px; color: #7b7e73; border-bottom: 1px solid var(--gray-border); }
+.step.active { color: var(--text); font-weight: 700; border-bottom-color: var(--text); }
+.step.done { color: var(--text-sub); }
+.step-num { font-size: 11px; width: 23px; font-variant-numeric: tabular-nums; }
+.step.active .step-num { color: var(--accent); }
+.step-line { display: none; }
+.sidebar-heading { font-size: 12px; font-weight: 700; margin-bottom: 16px; }
+.rules { font-size: 12px; line-height: 1.8; }
+.rule { padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--gray-border); }
+.rule dt { color: var(--text-sub); margin-bottom: 5px; }
+.rule dd { font-weight: 500; }
+.rule dd strong { font-size: 23px; font-weight: 500; margin: 0 3px; }
+.sidebar-note { color: var(--text-sub); line-height: 1.85; font-size: 12px; }
+.sidebar-note strong { display: block; color: var(--text); font-weight: 600; margin-bottom: 7px; }
+.card { background: #fff; border-top: 2px solid var(--text); }
+.card-header { padding: 24px 26px 20px; border-bottom: 1px solid var(--gray-border); }
+.card-header h2 { font-size: 20px; line-height: 1.5; font-weight: 600; letter-spacing: .025em; }
+.card-header p { margin-top: 6px; color: var(--text-sub); font-size: 12px; line-height: 1.8; }
+.card-body { padding: 22px 26px 26px; }
+.cal-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 21px; }
+.week-lbl { font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: .025em; }
+.nav-row { display: flex; gap: 6px; }
+.nav-btn { height: 40px; width: 40px; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid #cfd1c6; border-radius: 2px; }
+.nav-btn svg { width: 17px; height: 17px; }
+.nav-btn:hover:not(:disabled) { background: var(--text); border-color: var(--text); color: white; }
+.nav-btn:disabled { opacity: .3; }
+.cal-scroll { overflow-x: auto; }
+.cal-table { border-collapse: collapse; table-layout: fixed; width: 100%; }
+.cal-table th { height: 61px; font-weight: 400; text-align: center; border-bottom: 1px solid #c4c8bc; padding-bottom: 9px; }
+.cal-table th.time-th { width: 43px; font-size: 10px; color: var(--gray-muted); vertical-align: bottom; padding-bottom: 12px; }
+.day-name { color: var(--text-sub); font-size: 11px; margin-bottom: 2px; }
+.day-num-th { display: inline-flex; justify-content: center; align-items: center; width: 30px; height: 29px; font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.cal-table th.sat .day-name, .cal-table th.sat .day-num-th { color: #536e82; }
+.cal-table th.sun .day-name, .cal-table th.sun .day-num-th { color: var(--accent); }
+.day-num-th.today { background: var(--accent); color: #fff !important; border-radius: 2px; }
+.time-cell { font-size: 10px; color: var(--gray-muted); text-align: left; white-space: nowrap; vertical-align: middle; font-variant-numeric: tabular-nums; }
+.time-cell.right { text-align: right; }
+.cal-table td:not(.time-cell) { border-bottom: 1px solid #e6e7e0; border-left: 1px solid #e6e7e0; }
+.cal-table td:nth-last-child(2) { border-right: 1px solid #e6e7e0; }
+.slot { width: 100%; height: 42px; position: relative; display: block; border: 0; background: white; border-radius: 0; }
+.slot:not(.booked):not(.past):not(.selected)::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 7px; height: 7px; border: 1px solid #bbc1b2; border-radius: 50%; }
+.slot:hover:not(.past):not(.booked):not(.selected) { background: #eef0e8; }
+.slot:hover:not(.past):not(.booked):not(.selected)::before { border-color: var(--text); background: var(--text); }
+.slot:focus-visible { z-index: 2; outline-offset: -3px; }
+.slot.selected { background: var(--text); color: white; }
+.slot.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.slot.booked { background: #e9eae3; }
+.slot.booked:hover { background: #dbded1; }
+.slot-name { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 4px; font-size: 10px; line-height: 1.35; font-weight: 500; overflow: hidden; overflow-wrap: anywhere; }
+.slot.past { background: repeating-linear-gradient(135deg, #f5f5f1, #f5f5f1 4px, #eeefe8 4px, #eeefe8 5px); }
+.slot.past:not(.booked)::before { content: '—'; color: #b7bbad; font-size: 12px; }
+.slot.past .slot-name { color: #8a8f80; }
+.calendar-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding-top: 16px; }
+.legend { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-sub); }
+.legend-icon { width: 10px; height: 10px; border: 1px solid #b9c0ae; display: inline-block; }
+.legend-icon.available { border-radius: 50%; width: 7px; height: 7px; margin: 0 2px; }
+.legend-icon.reserved { background: #e9eae3; border-color: #e9eae3; }
+.legend-icon.unavailable { background: repeating-linear-gradient(135deg, #f5f5f1, #f5f5f1 2px, #d9ddcf 2px, #d9ddcf 3px); border-color: #ebede4; }
+.mobile-days { display: none; }
+.notice { display: none; align-items: center; gap: 12px; background: var(--text); color: #fff; border-radius: 3px; padding: 13px 14px 13px 17px; font-size: 12px; line-height: 1.7; margin-top: 20px; position: sticky; bottom: 16px; z-index: 10; }
+.notice.show { display: flex; }
+.notice svg { flex: 0 0 auto; }
+.proceed-btn { border: 0; background: white; color: var(--text); padding: 10px 14px; min-height: 40px; border-radius: 2px; margin-left: auto; white-space: nowrap; font-size: 12px; font-weight: 600; }
+.proceed-btn:hover { background: #e5e7dc; }
+.form-section, .complete-section { display: none; }
+.form-section.show, .complete-section.show { display: block; }
+#step2 .card-body { max-width: 580px; padding-top: 28px; padding-bottom: 36px; }
+.slot-pill { display: flex; align-items: center; gap: 9px; background: var(--gray-bg); border-left: 2px solid var(--accent); padding: 15px 17px; font-size: 14px; margin-bottom: 30px; font-weight: 500; }
+.form-group { margin-bottom: 23px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 9px; }
+.req { font-size: 10px; color: var(--accent); margin-left: 8px; font-weight: 400; }
+.form-group input, .modal input { display: block; width: 100%; border: 1px solid #c4c8bb; background: white; border-radius: 2px; min-height: 49px; font-size: 16px; padding: 11px 13px; color: var(--text); }
+input::placeholder { color: #90958a; font-size: 13px; }
+.form-group input:focus, .modal input:focus, .admin-row input:focus { border-color: var(--text); }
+.form-hint { margin-top: 8px; color: var(--text-sub); font-size: 11px; line-height: 1.85; }
+.field-error { display: none; font-size: 12px; color: #a53d27; margin-top: 7px; }
+.field-error.show { display: block; }
+.form-actions { display: flex; gap: 12px; margin-top: 32px; }
+.btn-back, .btn-submit, .new-btn { border-radius: 2px; min-height: 49px; font-size: 13px; padding: 12px 20px; }
+.btn-back, .new-btn { border: 1px solid #c4c8bb; background: white; }
+.btn-back:hover, .new-btn:hover { background: var(--gray-bg); }
+.btn-submit { flex: 1; border: 1px solid var(--text); background: var(--text); color: white; font-weight: 500; }
+.btn-submit:hover { background: var(--green-dark); }
+.complete-hero { padding: 42px 26px 30px; }
+.check-circle { width: 43px; height: 43px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--text); border-radius: 50%; font-size: 22px; margin-bottom: 24px; }
+.complete-hero h2 { font-size: 25px; font-weight: 600; }
+.complete-hero p { font-size: 12px; color: var(--text-sub); line-height: 1.9; margin-top: 12px; }
+.receipt-card { padding: 0 0 14px; }
+.receipt-row { display: flex; align-items: baseline; gap: 20px; justify-content: space-between; border-bottom: 1px solid var(--gray-border); padding: 15px 0; font-size: 14px; }
+.rk { color: var(--text-sub); font-size: 12px; flex: 0 0 auto; }
+.rv { overflow-wrap: anywhere; }
+.new-btn { margin-top: 12px; width: 100%; }
+.modal-overlay { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; background: rgba(25,28,21,.48); padding: 20px; z-index: 100; }
+.modal-overlay.open { display: flex; }
+.modal { width: 100%; max-width: 430px; padding: 28px; background: #fff; border-radius: 3px; border-top: 3px solid var(--text); max-height: calc(100dvh - 40px); overflow-y: auto; }
+.modal h3 { font-size: 20px; margin-bottom: 10px; font-weight: 600; }
+.modal-sub { font-size: 12px; line-height: 1.85; color: var(--text-sub); margin-bottom: 21px; }
+.modal-slot { font-size: 12px; background: var(--gray-bg); border-left: 2px solid var(--accent); padding: 13px; margin-bottom: 22px; line-height: 1.85; overflow-wrap: anywhere; }
+.modal-input-label { font-size: 12px; display: block; margin-bottom: 8px; }
+.modal-error { font-size: 11px; color: #a53d27; min-height: 18px; margin: 8px 0 16px; }
+.modal-actions { display: flex; gap: 9px; }
+.modal-cancel, .modal-delete { flex: 1; min-height: 46px; border-radius: 2px; font-size: 13px; padding: 10px; }
+.modal-cancel { border: 1px solid #c4c8bb; background: white; }
+.modal-cancel:hover { background: var(--gray-bg); }
+.modal-delete { border: 1px solid #a4432b; background: #a4432b; color: white; }
+.modal-delete:hover { background: #8a3521; }
+#admin-modal .modal-delete { background: var(--text); border-color: var(--text); }
+.admin-badge { display: none; align-items: center; gap: 9px; padding: 6px 9px; background: #a4432b; color: white; border-radius: 2px; font-size: 10px; }
+.admin-badge.show { display: inline-flex; }
+.admin-exit { padding: 2px 6px; border: 1px solid rgba(255,255,255,.5); color: white; background: transparent; font-size: 10px; }
+.slot.admin-selected { box-shadow: inset 0 0 0 2px #a4432b; background: #f6e8e0; }
+.slot.admin-selected::before { content: '✓' !important; width: auto !important; height: auto !important; border: 0 !important; color: #a4432b; font-size: 14px; top: 5px !important; right: 5px; left: auto !important; transform: none !important; z-index: 1; }
+.admin-toolbar { border-top: 2px solid #a4432b; padding-top: 20px; margin-top: 24px; }
+.admin-toolbar h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.admin-sub { font-size: 11px; line-height: 1.85; color: var(--text-sub); margin-bottom: 14px; }
+.admin-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.admin-row input { flex: 1; min-width: 140px; min-height: 43px; padding: 10px 12px; border: 1px solid #c4c8bb; border-radius: 2px; font-size: 14px; width: 100%; }
+.admin-bulk-row { align-items: flex-end; }
+.admin-field { flex: 1 1 160px; min-width: 150px; }
+.admin-field label { display: block; font-size: 12px; margin-bottom: 8px; }
+.admin-field input { min-width: 0; }
+.admin-bulk-hint { font-size: 11px; color: var(--text-sub); line-height: 1.85; margin-top: 10px; }
+.admin-btn { min-height: 43px; padding: 10px 12px; font-size: 11px; border: 1px solid var(--text); background: white; border-radius: 2px; }
+.admin-btn.register { background: var(--text); color: white; }
+.admin-btn.delete { border-color: #a4432b; background: #a4432b; color: white; }
+.admin-btn.clear { border-color: #c4c8bb; }
+.admin-count { font-size: 11px; color: var(--text-sub); margin-top: 13px; }
+.admin-msg { font-size: 12px; min-height: 18px; margin-top: 8px; }
+.admin-msg.ok { color: #4b6044; }
+.admin-msg.err { color: #a4432b; }
+.fade-in { animation: appear .18s ease-out; }
+@keyframes appear { from { opacity: .4; } to { opacity: 1; } }
+@media (max-width: 1000px) {
+  .booking-layout { grid-template-columns: 180px minmax(0, 1fr); gap: 28px; }
+  .card-header { padding-left: 20px; padding-right: 20px; }
+  .card-body { padding-left: 20px; padding-right: 20px; }
+}
+@media (max-width: 760px) {
+  .header { min-height: 66px; padding: 0 20px; gap: 10px; }
+  .logo-mark { width: 31px; height: 31px; }
+  .logo-text { font-size: 14px; }
+  .page-wrap { padding: 20px 20px 32px; }
+  .booking-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .booking-sidebar { display: contents; }
+  .steps { flex-direction: row; gap: 18px; margin-bottom: 22px; }
+  .step { min-height: 37px; flex: 1; gap: 8px; font-size: 11px; white-space: nowrap; }
+  .step-num { width: auto; font-size: 10px; }
+  .usage-guide { grid-row: 3; padding-top: 26px; }
+  .usage-guide .sidebar-heading { margin-bottom: 10px; }
+  .rules { display: flex; gap: 22px; }
+  .rule { flex: 1; margin-bottom: 14px; padding-bottom: 12px; }
+  .rule dd strong { font-size: 20px; }
+  .sidebar-note { font-size: 11px; }
+  .sidebar-note strong { display: inline; margin-right: 9px; }
+  .card-header { padding: 20px 18px 16px; }
+  .card-header h2 { font-size: 18px; }
+  .card-header p { font-size: 11px; }
+  .card-body { padding: 18px; }
+  .cal-toolbar { margin-bottom: 19px; }
+  .week-lbl { font-size: 17px; }
+  .nav-btn { width: 38px; height: 38px; }
+  .mobile-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; padding-bottom: 16px; }
+  .mobile-day { min-width: 0; min-height: 57px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 0; border-bottom: 2px solid transparent; border-radius: 2px 2px 0 0; background: var(--gray-bg); }
+  .mobile-day span { font-size: 10px; color: var(--text-sub); }
+  .mobile-day strong { font-size: 18px; font-weight: 500; }
+  .mobile-day.today { border-bottom-color: var(--accent); }
+  .mobile-day.active { background: var(--text); color: white; }
+  .mobile-day.active span { color: #fff; }
+  .cal-table th[data-mobile="false"], .cal-table td[data-mobile="false"], .cal-table th.right, .cal-table td.right { display: none; }
+  .cal-table th { height: 47px; padding-bottom: 8px; }
+  .cal-table th.time-th { width: 55px; text-align: left; padding-left: 0; }
+  .cal-table th[data-mobile="true"] { text-align: left; padding-left: 16px; }
+  .cal-table th[data-mobile="true"] .day-name { display: inline; font-size: 11px; margin-right: 6px; }
+  .cal-table th[data-mobile="true"] .day-num-th { font-size: 15px; width: 23px; height: 23px; }
+  .cal-table td[data-mobile="true"] { border-right: 1px solid #e6e7e0; }
+  .time-cell { font-size: 11px; }
+  .slot { height: 44px; text-align: left; }
+  .slot:not(.booked):not(.past):not(.selected)::before { left: 20px; width: 7px; height: 7px; }
+  .slot:not(.booked):not(.past):not(.selected)::after { content: '空き'; position: absolute; top: 50%; left: 35px; transform: translateY(-50%); color: var(--text-sub); font-size: 12px; }
+  .slot.selected::after { content: '✓　選択中'; justify-content: flex-start; padding-left: 16px; font-size: 12px; }
+  .slot.past:not(.booked)::before { position: absolute; top: 50%; left: 16px; transform: translateY(-50%); }
+  .slot.past:not(.booked)::after { content: '受付終了'; position: absolute; top: 50%; left: 35px; transform: translateY(-50%); font-size: 11px; color: #8a8f80; }
+  .slot-name { justify-content: flex-start; padding-left: 16px; font-size: 12px; }
+  .calendar-footer { gap: 10px 14px; }
+  .legend { font-size: 9px; }
+  .notice { position: fixed; bottom: max(14px, env(safe-area-inset-bottom)); left: 20px; right: 20px; padding: 11px 12px; gap: 8px; margin: 0; font-size: 11px; box-shadow: 0 4px 20px #25282226; }
+  .notice svg { display: none; }
+  .proceed-btn { padding: 9px 12px; font-size: 11px; }
+  body:has(.notice.show) .page-wrap { padding-bottom: 105px; }
+  body:has(#step1[style*="none"]) .notice { display: none; }
+  .slot-pill { font-size: 12px; padding: 13px; margin-bottom: 24px; }
+  #step2 .card-body { padding-top: 22px; padding-bottom: 26px; }
+  .form-actions { gap: 9px; }
+  .btn-back { padding: 12px 14px; }
+  .complete-hero { padding: 30px 20px 24px; }
+  .complete-hero h2 { font-size: 22px; }
+  .receipt-row { font-size: 12px; }
+  .admin-badge { margin-left: auto; }
+  .admin-bulk-row .admin-field { flex-basis: 100%; }
+  .admin-bulk-row .admin-btn { width: 100%; }
+  .modal { padding: 24px 20px; }
+}
+@media (max-width: 360px) {
+  .page-wrap { padding-left: 14px; padding-right: 14px; }
+  .header { padding-left: 14px; padding-right: 14px; }
+  .steps { gap: 10px; }
+  .step { gap: 6px; }
+  .week-lbl { font-size: 15px; }
+  .card-body { padding-left: 14px; padding-right: 14px; }
+  .rules { gap: 14px; }
+  .rule { font-size: 11px; }
+  .notice { left: 14px; right: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+</style></head><body>
 <header class="header">
-  <div class="logo-mark" id="logo-mark" onclick="handleLogoTap()">
-    <svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
-  </div>
+  <button class="logo-mark" id="logo-mark" onclick="handleLogoTap()" aria-label="スタジオ予約">
+    <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 10v8M14 5v18M22 9v10"/></svg>
+  </button>
   <span class="logo-text">スタジオ予約</span>
-  <span class="logo-sub">オンライン予約フォーム</span>
-  <span class="admin-badge" id="admin-badge">管理モード <button class="admin-exit" onclick="exitAdminMode()">終了</button></span>
+<span class="admin-badge" id="admin-badge">管理モード <button class="admin-exit" onclick="exitAdminMode()">終了</button></span>
 </header>
 
-<div class="page-wrap">
-  <div class="steps" id="steps">
-    <div class="step active" id="s1"><div class="step-num">1</div><span>日時を選ぶ</span></div>
-    <div class="step-line" id="sl1"></div>
-    <div class="step" id="s2"><div class="step-num">2</div><span>情報を入力</span></div>
-    <div class="step-line" id="sl2"></div>
-    <div class="step" id="s3"><div class="step-num">3</div><span>予約完了</span></div>
-  </div>
-
-  <!-- Step 1 -->
-  <div id="step1">
-    <div class="card fade-in">
-      <div class="card-header">
-        <h2>希望の日時を選択してください</h2>
-        <p>空き枠をタップして選択。予約済み枠をタップするとパスで削除できます。</p>
-       <p>平日は個人、バンドそれぞれ1時間。土日祝日長期休暇は個人、バンドそれぞれ2時間まで。</p>
+<main class="page-wrap">
+  <div class="booking-layout">
+    <aside class="booking-sidebar">
+      <nav class="steps" id="steps" aria-label="予約の手順">
+        <div class="step active" id="s1"><span class="step-num">1</span><span>日時を選ぶ</span></div>
+        <div class="step-line" id="sl1"></div>
+        <div class="step" id="s2"><span class="step-num">2</span><span>情報を入力</span></div>
+        <div class="step-line" id="sl2"></div>
+        <div class="step" id="s3"><span class="step-num">3</span><span>予約完了</span></div>
+      </nav>
+      <div class="usage-guide">
+        <h2 class="sidebar-heading">利用時間のルール</h2>
+        <dl class="rules">
+          <div class="rule"><dt>平日</dt><dd>個人・バンド、それぞれ<br><strong>1</strong>時間まで</dd></div>
+          <div class="rule"><dt>土日祝日・長期休暇</dt><dd>個人・バンド、それぞれ<br><strong>2</strong>時間まで</dd></div>
+        </dl>
+        <p class="sidebar-note"><strong>予約を取り消すには</strong>予約済みの枠を選び、予約時に設定したキャンセル用パスを入力してください。</p>
       </div>
-      <div class="card-body">
-        <div class="cal-toolbar">
-          <div>
-            <div class="week-lbl" id="week-lbl"></div>
-            <div class="week-indicator" id="week-indicator">
-              <div class="week-dot active"></div>
-              <div class="week-dot"></div>
-              <div class="week-dot"></div>
+    </aside>
+    <div class="booking-main">
+      <section id="step1">
+        <div class="card fade-in">
+          <div class="card-header"><h2>日時を選ぶ</h2><p>空き枠を選択してください。1枠は1時間です。</p></div>
+          <div class="card-body">
+            <div class="cal-toolbar">
+              <div><div class="week-lbl" id="week-lbl" aria-live="polite"></div></div>
+              <div class="nav-row">
+                <button class="nav-btn" id="btn-prev" onclick="prevWeek()" aria-label="前の週"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+                <button class="nav-btn" id="btn-next" onclick="nextWeek()" aria-label="次の週"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+              </div>
+            </div>
+            <div class="mobile-days" id="mobile-days" role="group" aria-label="表示する日付"></div>
+            <div class="cal-scroll"><table class="cal-table" aria-label="スタジオの空き状況"><thead><tr id="cal-head"></tr></thead><tbody id="cal-body"></tbody></table></div>
+            <div class="calendar-footer"><span class="legend"><i class="legend-icon available" aria-hidden="true"></i>空き</span><span class="legend"><i class="legend-icon reserved" aria-hidden="true"></i>予約済み</span><span class="legend"><i class="legend-icon unavailable" aria-hidden="true"></i>受付終了</span></div>
+            <div class="notice" id="notice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><span id="notice-text" aria-live="polite"></span><button class="proceed-btn" onclick="goStep2()">入力へ進む →</button></div>
+            <div class="admin-toolbar" id="admin-toolbar" style="display:none;">
+              <h3>一括操作</h3><p class="admin-sub">枠をクリックして複数選択できます。空き枠は一括登録、予約済み枠は一括削除で処理されます。</p>
+              <div class="admin-row admin-bulk-row">
+                <div class="admin-field"><label for="admin-bulk-name">名前 / バンド名<span class="req">必須</span></label><input type="text" id="admin-bulk-name" placeholder="登録する名前 / バンド名" aria-required="true"></div>
+                <div class="admin-field"><label for="admin-bulk-pass">キャンセル用パス<span class="req">必須</span></label><input type="password" id="admin-bulk-pass" placeholder="4文字以上で設定" autocomplete="new-password" minlength="4" aria-required="true" aria-describedby="admin-bulk-hint admin-msg"></div>
+                <button class="admin-btn register" onclick="bulkRegister()">空き枠に一括登録</button>
+              </div>
+              <p class="admin-bulk-hint" id="admin-bulk-hint">選択した空き枠には、すべて同じキャンセル用パスを設定します。予約を取り消す際に使用します。</p>
+              <div class="admin-row" style="margin-top:8px;"><button class="admin-btn delete" onclick="bulkDeleteSelected()">予約済み枠を一括削除</button><button class="admin-btn clear" onclick="clearAdminSelection()">選択をクリア</button></div>
+              <div class="admin-count" id="admin-count">0件選択中</div><div class="admin-msg" id="admin-msg" aria-live="polite"></div>
+              <div class="admin-row" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-border);"><input type="password" id="admin-new-pass" placeholder="新しい管理者パスワード" aria-label="新しい管理者パスワード" autocomplete="new-password"><input type="password" id="admin-new-pass2" placeholder="確認用に再入力" aria-label="新しい管理者パスワードの確認" autocomplete="new-password"><button class="admin-btn clear" onclick="changeAdminPassword()">パスワードを変更</button></div>
             </div>
           </div>
-          <div class="nav-row">
-            <button class="nav-btn" id="btn-prev" onclick="prevWeek()">‹</button>
-            <button class="nav-btn" id="btn-next" onclick="nextWeek()">›</button>
+        </div>
+      </section>
+      <section id="step2" class="form-section">
+        <div class="card fade-in"><div class="card-header"><h2>予約情報を入力する</h2><p>名前とキャンセル用パスを設定してください。</p></div>
+          <div class="card-body"><div class="slot-pill" id="slot-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg><span id="slot-pill-text"></span></div>
+            <div class="form-group"><label for="f-name">名前 / バンド名<span class="req">必須</span></label><input type="text" id="f-name" placeholder="名前またはバンド名" autocomplete="name" aria-required="true" aria-describedby="e-name"><div class="field-error" id="e-name" role="alert">名前を入力してください</div></div>
+            <div class="form-group"><label for="f-pass">キャンセル用パス<span class="req">必須</span></label><input type="password" id="f-pass" placeholder="4文字以上で設定" autocomplete="new-password" aria-required="true" aria-describedby="pass-hint e-pass"><div class="form-hint" id="pass-hint">予約を取り消す際に使用します。忘れないようにメモしてください。</div><div class="field-error" id="e-pass" role="alert">パスを入力してください（4文字以上）</div></div>
+            <div class="form-actions"><button class="btn-back" onclick="goStep1()">← 日時を変更</button><button class="btn-submit" onclick="submitForm()">予約を確定する</button></div>
           </div>
         </div>
-        <div class="cal-scroll">
-          <table class="cal-table">
-            <thead><tr id="cal-head"></tr></thead>
-            <tbody id="cal-body"></tbody>
-          </table>
-        </div>
-        <div class="notice" id="notice">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
-          <span id="notice-text"></span>
-          <button class="proceed-btn" onclick="goStep2()">次へ →</button>
-        </div>
-
-        <!-- 管理者ツールバー -->
-        <div class="admin-toolbar" id="admin-toolbar" style="display:none;">
-          <h3>一括操作（管理モード）</h3>
-          <p class="admin-sub">カレンダーの枠をクリックして複数選択できます。空き枠は「一括登録」、予約済み枠は「一括削除」で処理されます。</p>
-          <div class="admin-row">
-            <input type="text" id="admin-bulk-name" placeholder="登録する名前 / バンド名">
-            <button class="admin-btn register" onclick="bulkRegister()">選択した空き枠に一括登録</button>
-          </div>
-          <div class="admin-row" style="margin-top:8px;">
-            <button class="admin-btn delete" onclick="bulkDeleteSelected()">選択した予約済み枠を一括削除</button>
-            <button class="admin-btn clear" onclick="clearAdminSelection()">選択をクリア</button>
-          </div>
-          <div class="admin-count" id="admin-count">0件選択中</div>
-          <div class="admin-msg" id="admin-msg"></div>
-          <div class="admin-row" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--gray-border);">
-            <input type="password" id="admin-new-pass" placeholder="新しい管理者パスワード" style="flex:1; min-width:120px; padding:9px 12px; border:1px solid var(--gray-border); border-radius:var(--radius); font-size:14px; font-family:'Noto Sans JP',sans-serif;">
-            <input type="password" id="admin-new-pass2" placeholder="確認用に再入力" style="flex:1; min-width:120px; padding:9px 12px; border:1px solid var(--gray-border); border-radius:var(--radius); font-size:14px; font-family:'Noto Sans JP',sans-serif;">
-            <button class="admin-btn clear" onclick="changeAdminPassword()">パスワードを変更</button>
-          </div>
-        </div>
-      </div>
+      </section>
+      <section id="step3" class="complete-section">
+        <div class="card fade-in"><div class="complete-hero"><div class="check-circle" aria-hidden="true">✓</div><h2>予約が完了しました</h2><p id="complete-msg">キャンセルする場合は、予約した枠を選び、<br>設定したキャンセル用パスを入力してください。</p></div><div class="card-body" style="border-top:1px solid var(--gray-border);"><div class="receipt-card" id="receipt-card"></div><button class="new-btn" onclick="reset()">別の日時を予約する</button></div></div>
+      </section>
     </div>
   </div>
-
-  <!-- Step 2 -->
-  <div id="step2" class="form-section">
-    <div class="card fade-in">
-      <div class="card-header">
-        <h2>情報を入力してください</h2>
-        <p>名前とキャンセル用パスを設定してください</p>
-      </div>
-      <div class="card-body">
-        <div class="slot-pill" id="slot-pill">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
-          <span id="slot-pill-text"></span>
-        </div>
-        <div class="form-group">
-          <label>名前 / バンド名<span class="req">*</span></label>
-          <input type="text" id="f-name" placeholder="名前/バンド名" autocomplete="name">
-          <div class="field-error" id="e-name">名前を入力してください</div>
-        </div>
-        <div class="form-group">
-          <label>キャンセル用パス<span class="req">*</span></label>
-          <input type="password" id="f-pass" placeholder="4文字以上で設定">
-          <div class="form-hint">予約を取り消す際に使用します。忘れないようにメモしてください。</div>
-          <div class="field-error" id="e-pass">パスを入力してください（4文字以上）</div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-back" onclick="goStep1()">← 戻る</button>
-          <button class="btn-submit" onclick="submitForm()">予約を確定する</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 3 -->
-  <div id="step3" class="complete-section">
-    <div class="card fade-in">
-      <div class="complete-hero">
-        <div class="check-circle">✓</div>
-        <h2>予約が完了しました</h2>
-        <p id="complete-msg"></p>
-      </div>
-      <div class="card-body" style="border-top:1px solid var(--gray-border);">
-        <div class="receipt-card" id="receipt-card"></div>
-        <button class="new-btn" onclick="reset()">別の日時で予約する</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 削除モーダル -->
-<div class="modal-overlay" id="delete-modal">
-  <div class="modal">
-    <h3>予約のキャンセル</h3>
-    <p class="modal-sub">予約時に設定したパスを入力すると予約を削除できます。</p>
-    <div class="modal-slot" id="modal-slot-label"></div>
-    <input type="password" id="modal-pass" placeholder="キャンセル用パス">
-    <div class="modal-error" id="modal-error"></div>
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeDeleteModal()">閉じる</button>
-      <button class="modal-delete" onclick="confirmDelete()">削除する</button>
-    </div>
-  </div>
-</div>
-
-<!-- 管理者パスワードモーダル -->
-<div class="modal-overlay" id="admin-modal">
-  <div class="modal">
-    <h3>管理者ログイン</h3>
-    <p class="modal-sub">管理者パスワードを入力してください。</p>
-    <input type="password" id="admin-pass-input" placeholder="管理者パスワード" onkeydown="if(event.key==='Enter') confirmAdminLogin()">
-    <div class="modal-error" id="admin-modal-error"></div>
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeAdminModal()">閉じる</button>
-      <button class="modal-delete" onclick="confirmAdminLogin()">ログイン</button>
-    </div>
-  </div>
-</div>
-
+</main>
+<div class="modal-overlay" id="delete-modal"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-title"><h3 id="delete-title">予約をキャンセルする</h3><p class="modal-sub">予約時に設定したキャンセル用パスを入力してください。</p><div class="modal-slot" id="modal-slot-label"></div><label class="modal-input-label" for="modal-pass">キャンセル用パス</label><input type="password" id="modal-pass" placeholder="予約時に設定したパス" autocomplete="off" aria-describedby="modal-error"><div class="modal-error" id="modal-error" role="alert"></div><div class="modal-actions"><button class="modal-cancel" onclick="closeDeleteModal()">閉じる</button><button class="modal-delete" onclick="confirmDelete()">キャンセルする</button></div></div></div>
+<div class="modal-overlay" id="admin-modal"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="admin-title"><h3 id="admin-title">管理者ログイン</h3><p class="modal-sub">管理者パスワードを入力してください。</p><label class="modal-input-label" for="admin-pass-input">管理者パスワード</label><input type="password" id="admin-pass-input" placeholder="管理者パスワード" autocomplete="current-password" aria-describedby="admin-modal-error" onkeydown="if(event.key==='Enter') confirmAdminLogin()"><div class="modal-error" id="admin-modal-error" role="alert"></div><div class="modal-actions"><button class="modal-cancel" onclick="closeAdminModal()">閉じる</button><button class="modal-delete" onclick="confirmAdminLogin()">ログイン</button></div></div></div>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, writeBatch }
@@ -335,6 +328,7 @@ const MAX_WEEKS = 3;
 
 const todayD = new Date(); todayD.setHours(0,0,0,0);
 let weekOffset   = 0;
+let mobileDay = (todayD.getDay() + 6) % 7;
 let selectedDay  = null;
 let selectedHour = null;
 let deleteSlotKey = null;
@@ -390,7 +384,7 @@ function startRealtimeSync() {
             bookedSlots.set(docSnap.id, { name: docSnap.data().name, pass: docSnap.data().pass || '' });
           }
           // 表示中の週に関わらず、日付が「今日」より前の予約はすべて削除対象にする
-          if (slotDate < ws0) staleKeys.push(docSnap.id);
+          if (slotDate < todayD) staleKeys.push(docSnap.id);
         }
       });
       renderCalendar();
@@ -450,32 +444,41 @@ function isPast(date, hour) {
 }
 
 function renderCalendar() {
+  const focusedSlot = document.activeElement?.dataset.slotKey;
+  const focusedDay = document.activeElement?.dataset.dayIndex;
   const ws = weekStart(weekOffset);
   const we = new Date(ws); we.setDate(we.getDate() + 6);
   const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
   document.getElementById('week-lbl').textContent =
     `${ws.getFullYear()}年  ${fmt(ws)} – ${fmt(we)}`;
 
-  // ページドット更新
-  document.querySelectorAll('.week-dot').forEach((el, i) => {
-    el.className = 'week-dot' + (i === weekOffset ? ' active' : '');
-  });
-  document.getElementById('btn-prev').disabled = weekOffset === 0;
+document.getElementById('btn-prev').disabled = weekOffset === 0;
   document.getElementById('btn-next').disabled = weekOffset === MAX_WEEKS - 1;
 
   // ヘッダー
   const head = document.getElementById('cal-head');
-  head.innerHTML = '<th class="time-th"></th>';
+  head.innerHTML = '<th class="time-th" scope="col">時間</th>'; 
+  const mobileDays = document.getElementById('mobile-days');
+  mobileDays.replaceChildren();
   for (let d = 0; d < 7; d++) {
     const date = new Date(ws); date.setDate(date.getDate() + d);
     const isToday = date.getTime() === todayD.getTime();
     const cls = d === 6 ? 'sun' : d === 5 ? 'sat' : '';
-    head.innerHTML += `<th class="${cls}">
+    const dayButton = document.createElement('button');
+    dayButton.type = 'button';
+    dayButton.dataset.dayIndex = String(d);
+    dayButton.className = 'mobile-day' + (d === mobileDay ? ' active' : '') + (isToday ? ' today' : '');
+    dayButton.setAttribute('aria-label', `${date.getMonth()+1}月${date.getDate()}日 ${DAYS[d]}曜日`);
+    dayButton.setAttribute('aria-pressed', String(d === mobileDay));
+    dayButton.innerHTML = `<span>${DAYS[d]}</span><strong>${date.getDate()}</strong>`;
+    dayButton.onclick = () => { mobileDay = d; renderCalendar(); };
+    mobileDays.appendChild(dayButton);
+    head.innerHTML += `<th class="${cls}" scope="col" data-mobile="${d === mobileDay}">
       <div class="day-name">${DAYS[d]}</div>
       <div class="day-num-th${isToday ? ' today' : ''}">${date.getDate()}</div>
     </th>`;
   }
-  head.innerHTML += '<th class="time-th"></th>';
+  head.innerHTML += '<th class="time-th right" scope="col">時間</th>'; 
  
   // ボディ
   const body = document.getElementById('cal-body');
@@ -493,8 +496,15 @@ function renderCalendar() {
       const chosen    = selectedDay === dk && selectedHour === hour;
       const adminSel  = adminMode && adminSelected.has(sk);
       const td = document.createElement('td');
-      const div = document.createElement('div');
-      div.className = 'slot' + (past ? ' past' : booked ? ' booked' : chosen ? ' selected' : '') + (adminSel ? ' admin-selected' : '');
+      td.dataset.mobile = String(d === mobileDay);
+      const div = document.createElement('button');
+      div.type = 'button';
+      div.dataset.slotKey = sk;
+      div.disabled = past && !booked && !adminMode;
+      const status = booked ? `${bookedData.name} 予約済み、キャンセル` : past ? '受付終了' : '空き';
+      div.setAttribute('aria-label', `${date.getMonth()+1}月${date.getDate()}日 ${DAYS[d]}曜日 ${hour}時から${hour+1}時 ${status}`);
+      div.setAttribute('aria-pressed', String(adminMode ? adminSel : chosen));
+      div.className = 'slot' + (past ? ' past' : '') + (booked ? ' booked' : chosen && !past ? ' selected' : '') + (adminSel ? ' admin-selected' : '');
       if (booked) {
         const lbl = document.createElement('div');
         lbl.className = 'slot-name';
@@ -518,6 +528,11 @@ function renderCalendar() {
     tr.appendChild(tdRight);
     body.appendChild(tr);
   });
+  if (focusedSlot) {
+    [...body.querySelectorAll('.slot')].find(el => el.dataset.slotKey === focusedSlot)?.focus({ preventScroll: true });
+  } else if (focusedDay !== undefined) {
+    [...mobileDays.querySelectorAll('.mobile-day')].find(el => el.dataset.dayIndex === focusedDay)?.focus({ preventScroll: true });
+  }
 }
 
 function updateNotice(date, hour) {
@@ -570,7 +585,7 @@ async function confirmDelete() {
 function handleLogoTap() {
   const now = Date.now();
   tapTimestamps.push(now);
-  tapTimestamps = tapTimestamps.filter(t => now - t <= 1000);
+  tapTimestamps = tapTimestamps.filter(t => now - t <= 4000);
   if (tapTimestamps.length >= 5) {
     tapTimestamps = [];
     openAdminModal();
@@ -663,6 +678,7 @@ function enterAdminMode() {
 }
 function exitAdminMode() {
   adminMode = false;
+  document.getElementById('admin-bulk-pass').value = '';
   adminSelected.clear();
   document.getElementById('admin-badge').classList.remove('show');
   document.getElementById('admin-toolbar').style.display = 'none';
@@ -699,7 +715,14 @@ function labelFor(date, hour) {
 
 async function bulkRegister() {
   const name = document.getElementById('admin-bulk-name').value.trim();
+  const passInput = document.getElementById('admin-bulk-pass');
+  const pass = passInput.value;
   if (!name) { setAdminMsg('登録する名前を入力してください', 'err'); return; }
+  if (pass.length < 4) {
+    setAdminMsg('キャンセル用パスは4文字以上で設定してください', 'err');
+    passInput.focus();
+    return;
+  }
   const targets = [...adminSelected].filter(sk => !bookedSlots.get(sk));
   if (targets.length === 0) { setAdminMsg('選択枠の中に空き枠がありません', 'err'); return; }
   try {
@@ -708,15 +731,16 @@ async function bulkRegister() {
       targets.forEach(sk => {
         const { date, hour } = parseSlotKey(sk);
         batch.set(doc(db, 'reservations', sk), {
-          name, pass: '', label: labelFor(date, hour), createdAt: new Date().toISOString()
+          name, pass, label: labelFor(date, hour), createdAt: new Date().toISOString()
         });
       });
       await batch.commit();
     } else {
-      targets.forEach(sk => bookedSlots.set(sk, { name, pass: '' }));
+      targets.forEach(sk => bookedSlots.set(sk, { name, pass }));
     }
     targets.forEach(sk => adminSelected.delete(sk));
     updateAdminCount();
+    passInput.value = '';
     setAdminMsg(`${targets.length}件を登録しました`, 'ok');
     renderCalendar();
   } catch (e) {
@@ -814,6 +838,32 @@ function reset() {
   setStep(1);
 }
 
+let lastModalTrigger = null;
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  new MutationObserver(() => {
+    if (overlay.classList.contains('open')) {
+      lastModalTrigger = document.activeElement;
+      overlay.querySelector('input')?.focus();
+    } else if (lastModalTrigger?.isConnected) {
+      lastModalTrigger.focus();
+    }
+  }).observe(overlay, { attributes: true, attributeFilter: ['class'] });
+});
+document.addEventListener('keydown', event => {
+  const overlay = document.querySelector('.modal-overlay.open');
+  if (!overlay) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    overlay.id === 'delete-modal' ? closeDeleteModal() : closeAdminModal();
+  }
+  if (event.key === 'Tab') {
+    const focusable = [...overlay.querySelectorAll('button, input')].filter(el => !el.disabled);
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+});
+
 // ── 初期化 ───────────────────────────────────────────────────
 renderCalendar();
 if (isConfigured) { startRealtimeSync(); }
@@ -836,6 +886,4 @@ window.clearAdminSelection = clearAdminSelection;
 window.changeAdminPassword = changeAdminPassword;
 
 }); // end load
-</script>
-</body>
-</html>
+</script></body></html>
